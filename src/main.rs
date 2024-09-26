@@ -8,12 +8,24 @@
 //
 // Use Rust's package registry, crates.io, to find the dependencies you need
 // (if any) to build this system.
+//
+// TODO: try and keep the crate count as low as possible
 
-use tokio::net::TcpListener;
+
+mod handler;
+use tokio::net::{TcpListener};
+use handler::handle_stream;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    let _listener = TcpListener::bind("127.0.0.1:1337").await?;
+    let listener = TcpListener::bind("127.0.0.1:1337").await?;
 
-    Ok(())
+    loop {
+        let (stream, _) = listener.accept().await?;
+
+        tokio::spawn(async move {
+            handle_stream(stream).await;
+            todo!("We need to handle this stream");
+        });
+    }
 }
