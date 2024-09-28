@@ -11,10 +11,9 @@
 //
 // TODO: try and keep the crate count as low as possible
 
-
 mod handler;
-use tokio::net::{TcpListener};
 use handler::handle_stream;
+use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
@@ -24,8 +23,11 @@ async fn main() -> Result<(), anyhow::Error> {
         let (stream, _) = listener.accept().await?;
 
         tokio::spawn(async move {
-            handle_stream(stream).await;
-            todo!("We need to handle this stream");
+            match handle_stream(stream).await {
+                Ok(_) => println!("Request ok"),
+                Err(e) => println!("Something went wrong: {:?}", e)
+            };
+            ()
         });
     }
 }
