@@ -16,12 +16,13 @@ pub struct Request {
     // TODO: headers? body
 }
 
-// TODO
+// TODO: what does a response look like?
+// How is it written back to the stream?
 pub struct Response;
 
 // TODO: does _this_ have to be async?
 fn handle_request(req: Request) -> Result<(), anyhow::Error> {
-     let _ = match req.method {
+    let _ = match req.method {
         Method::Get => {
             println!("{:?}", req);
         }
