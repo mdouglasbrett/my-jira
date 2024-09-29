@@ -1,5 +1,6 @@
 use anyhow::anyhow;
-use tokio::io::AsyncReadExt;
+use serde::{Deserialize, Serialize};
+use tokio::io::{BufReader, AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
 #[derive(Debug)]
@@ -9,15 +10,19 @@ pub enum Method {
     Patch,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Data {
+    foo: String,
+}
+
 #[derive(Debug)]
 pub struct Request {
     pub method: Method,
-    pub path: String,
-    // TODO: headers? body
+    pub uri: String,
+    pub data: Option<Data>, // TODO: headers? body
 }
 
 // TODO: what does a response look like?
-// How is it written back to the stream?
 pub struct Response;
 
 // TODO: does _this_ have to be async?
@@ -36,13 +41,15 @@ fn handle_request(req: Request) -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-pub async fn handle_stream(mut stream: TcpStream) -> Result<(), anyhow::Error> {
+pub async fn handle_stream(stream: TcpStream) -> Result<(), anyhow::Error> {
+    let mut stream = BufReader::new(stream);
     let mut buf = String::new();
-    let _ = stream.read_to_string(&mut buf).await?;
+    stream.read_to_string(&mut buf).await?;
+    let mut req_parts = buf.split_terminator("\r\n");
+    // TODO: handle this better...
+    let mut start_line = req_parts.next().expect("wut?").split_whitespace();
 
-    let mut req_parts = buf.split_whitespace();
-
-    let method = match req_parts.next() {
+    let method = match start_line.next() {
         Some(s) => match s {
             "GET" => Method::Get,
             "POST" => Method::Post,
@@ -53,8 +60,27 @@ pub async fn handle_stream(mut stream: TcpStream) -> Result<(), anyhow::Error> {
             return Err(anyhow!("Could not get a method"));
         }
     };
-    let path = req_parts.next().unwrap_or("/").to_string();
-    // TODO: write this back to the stream?
-    let _ = handle_request(Request { method, path })?;
+    // TODO: could this be a slice instead?
+    let uri = start_line.next().unwrap_or("/").to_string();
+
+    // I don't actually care about the headers for this, I just want to get 
+    // to the body...
+    // TODO: better way?
+    while let Some(header) = req_parts.next() {
+        // Divider between head and body
+        if header.is_empty() {
+            break;
+        }
+    }
+    let data = match req_parts.next() {
+        Some(d) => Some(serde_json::from_str(d)?),
+        None => None,
+    };
+    // TODO: write the outcome of this call back to the stream here,
+    // or pass it back to main in the Result type?
+    let _ = handle_request(Request { method, uri, data })?;
+    // TODO: prolly come back to this after I have brought in the Ticket stuff
+    stream.write_all("HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n".as_bytes()).await?;
+    stream.flush().await?;
     Ok(())
 }

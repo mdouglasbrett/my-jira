@@ -22,12 +22,6 @@ async fn main() -> Result<(), anyhow::Error> {
     loop {
         let (stream, _) = listener.accept().await?;
 
-        tokio::spawn(async move {
-            match handle_stream(stream).await {
-                Ok(_) => println!("Request ok"),
-                Err(e) => println!("Something went wrong: {:?}", e)
-            };
-            ()
-        });
+        tokio::spawn(async move { handle_stream(stream).await.unwrap(); });
     }
 }
