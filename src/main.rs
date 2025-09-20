@@ -8,11 +8,9 @@
 //
 // Use Rust's package registry, crates.io, to find the dependencies you need
 // (if any) to build this system.
-//
-// TODO: try and keep the crate count as low as possible
 
-mod handler;
-use handler::handle_stream;
+#![warn(clippy::style, clippy::complexity, clippy::perf, clippy::correctness)]
+
 use tokio::net::TcpListener;
 
 #[tokio::main]
@@ -20,8 +18,8 @@ async fn main() -> Result<(), anyhow::Error> {
     let listener = TcpListener::bind("127.0.0.1:1337").await?;
 
     loop {
-        let (stream, _) = listener.accept().await?;
+        let (_stream, _) = listener.accept().await?;
 
-        tokio::spawn(async move { handle_stream(stream).await.unwrap(); });
+        tokio::spawn(async move { todo!() });
     }
 }
