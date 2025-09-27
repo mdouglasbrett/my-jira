@@ -1,3 +1,3 @@
 mod jira;
 
-pub use { jira::jira };
+pub use jira::jira;

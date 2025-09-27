@@ -11,19 +11,19 @@
 
 #![warn(clippy::style, clippy::complexity, clippy::perf, clippy::correctness)]
 
-use tokio::net::TcpListener;
 use std::net::SocketAddr;
+use tokio::net::TcpListener;
 
+use anyhow::Result;
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper_util::rt::TokioIo;
-use anyhow::Result;
 
 use my_jira::jira;
 
-
 #[tokio::main]
 async fn main() -> Result<()> {
+    // TODO: implement logging
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     let listener = TcpListener::bind(addr).await?;
 
