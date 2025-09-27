@@ -12,14 +12,33 @@
 #![warn(clippy::style, clippy::complexity, clippy::perf, clippy::correctness)]
 
 use tokio::net::TcpListener;
+use std::net::SocketAddr;
+
+use hyper::server::conn::http1;
+use hyper::service::service_fn;
+use hyper_util::rt::TokioIo;
+use anyhow::Result;
+
+use my_jira::jira;
+
 
 #[tokio::main]
-async fn main() -> Result<(), anyhow::Error> {
-    let listener = TcpListener::bind("127.0.0.1:1337").await?;
+async fn main() -> Result<()> {
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let listener = TcpListener::bind(addr).await?;
 
     loop {
-        let (_stream, _) = listener.accept().await?;
+        let (stream, _) = listener.accept().await?;
 
-        tokio::spawn(async move { todo!() });
+        let io = TokioIo::new(stream);
+
+        tokio::task::spawn(async move {
+            if let Err(err) = http1::Builder::new()
+                .serve_connection(io, service_fn(jira))
+                .await
+            {
+                eprintln!("Error serving connection: {:?}", err);
+            }
+        });
     }
 }
