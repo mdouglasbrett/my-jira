@@ -37,7 +37,7 @@ async fn main() -> Result<()> {
                 .serve_connection(io, service_fn(jira))
                 .await
             {
-                eprintln!("Error serving connection: {:?}", err);
+                eprintln!("Error serving connection: {err:?}");
             }
         });
     }
