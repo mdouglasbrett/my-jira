@@ -9,6 +9,19 @@ use hyper::{
 
 type BoxBody = http_body_util::combinators::BoxBody<Bytes, Infallible>;
 
+struct Ticket;
+struct TicketId(u64);
+struct Patch<'a, T> {
+    field: &'a str,
+    update: T,
+}
+
+enum Command<'a, T> {
+    Create(Ticket),
+    Get(TicketId),
+    Update(TicketId, Patch<'a, T>),
+}
+
 pub async fn jira(_req: Request<IncomingBody>) -> Result<Response<BoxBody>> {
     // Infallible is interesting. The Hyper example hides it away, but I feel
     // like I should be explicit about it in the newtype. :shrug_emoji:
