@@ -91,6 +91,15 @@ pub struct TicketDraft {
     pub description: TicketDescription,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TicketPatch {
+    pub id: TicketId,
+    pub title: Option<TicketTitle>,
+    pub description: Option<TicketDescription>,
+    pub status: Option<Status>,
+}
+
+
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub enum Status {
     ToDo,
