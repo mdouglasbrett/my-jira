@@ -1,7 +1,6 @@
 use crate::store::TicketId;
 
 use std::convert::TryFrom;
-use thiserror;
 
 #[derive(Debug, thiserror::Error)]
 pub enum TicketTitleError {
@@ -98,7 +97,6 @@ pub struct TicketPatch {
     pub description: Option<TicketDescription>,
     pub status: Option<Status>,
 }
-
 
 #[derive(Clone, Debug, Copy, PartialEq, Eq)]
 pub enum Status {
